@@ -560,6 +560,8 @@ Thread 1 hit Breakpoint 1, SysTick_Handler ()
 
 Now we can test breakpoints set in thread mode code by disabling the ```SysTick_Handler``` one, setting one on ```breakOnMe()``` instead, and then running test 3 which calls this function. Verify that it stops at the ```breakOnMe()``` breakpoint.
 ```console
+(gdb) delete
+Delete all breakpoints? (y or n) y
 (gdb) break breakOnMe()
 Breakpoint 2 at 0x804034c: file /Users/username/depots/KernelDebug_TestPass/KernelDebug_TestPass.ino, line 74.
 (gdb) set var g_selection=3
@@ -581,7 +583,8 @@ The following tests are similar to the previous except that they make sure that 
 
 Start with a write watchpoint:
 ```console
-(gdb) disable
+(gdb) delete
+Delete all breakpoints? (y or n) y
 (gdb) c
 Continuing.
 
@@ -613,7 +616,8 @@ breakOnMe () at /Users/username/depots/KernelDebug_TestPass/KernelDebug_TestPass
 
 Run the same test as above but for a read watchpoint:
 ```
-(gdb) disable
+(gdb) delete
+Delete all breakpoints? (y or n) y
 (gdb) c
 Continuing.
 
@@ -637,11 +641,10 @@ Delaying 10 seconds...
 
 Thread 1 hit Hardware read watchpoint 1: g_global
 
-Value = 2
+Value = 3
 breakOnMe () at /Users/username/depots/KernelDebug_TestPass/KernelDebug_TestPass.ino:77
 77	}
 ```
-**Note:** When testing on January 26th, 2023, GDB would just continue execution when KernelDebug tells it that it hit the rwatch. Exiting GDB, coming back in and re-enabling the rwatch fixed the problem.
 
 
 ## Test Threaded Single Stepping at Normal Priority
@@ -653,6 +656,8 @@ Set a breakpoint on "thread2Func" and then use GDB to select ```4) Run 2 threads
 Thread 1 received signal SIGTRAP, Trace/breakpoint trap.
 loop () at /Users/username/depots/KernelDebug_TestPass/KernelDebug_TestPass.ino:43
 43	    __debugbreak();
+(gdb) delete
+Delete all breakpoints? (y or n) y
 (gdb) break thread2Func
 Breakpoint 1 at 0x8040360: file /Users/username/depots/KernelDebug_TestPass/KernelDebug_TestPass.ino, line 131.
 (gdb) set var g_selection=4
@@ -804,11 +809,29 @@ runThreads (thread2Priority=osPriorityNormal, thread1Priority=osPriorityNormal)
 #1  0x0804607a in main () at /Users/username/Documents/Arduino/hardware/arduino/mbed/cores/arduino/main.cpp:47
 ```
 
-Press ```Return``` key in CoolTerm to stop the thread test.
+Set ```g_stop``` to 1 to stop the current test.
+```console
+gdb) set var g_stop=1
+(gdb) c
+Continuing.
+Thread2 OutputThread1 Output
+
+
+1) Set registers to known values and crash.
+2) Set registers to known values and stop at hardcoded bkpt.
+3) Call breakOnMe() to increment g_global
+4) Run 2 threads at normal priority
+5) Run 2 threads with testThread2 at osPriorityLow
+6) Trigger mbed hard fault handler
+Set selection in g_selection:
+Thread 1 received signal SIGTRAP, Trace/breakpoint trap.
+loop () at /Users/adamgreen/depots/KernelDebug_TestPass/KernelDebug_TestPass.ino:43
+43	    __debugbreak();
+```
 
 
 ## HardFault in Handler Mode
-KernelDebug can't debug these type of crashes so it will fall through to the default mbed crash implmentation.
+KernelDebug can debug crashes enccountered in handler mode code, unlike ThreadDebug.
 
 Use GDB to select ```6) Trigger mbed hard fault handler```
 
