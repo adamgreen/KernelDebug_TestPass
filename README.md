@@ -831,7 +831,7 @@ loop () at /Users/adamgreen/depots/KernelDebug_TestPass/KernelDebug_TestPass.ino
 
 
 ## HardFault in Handler Mode
-KernelDebug can debug crashes enccountered in handler mode code, unlike ThreadDebug.
+KernelDebug can debug crashes encountered in handler mode code, unlike ThreadDebug.
 
 Use GDB to select ```6) Trigger mbed hard fault handler```
 
